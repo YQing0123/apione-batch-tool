@@ -1,0 +1,23 @@
+{
+  "app_name": "APIOne Batch Tool",
+  "version": "0.3.0",
+  "min_supported_version": "0.1.0",
+  "release_notes": [
+    "便携式 Python 目录运行",
+    "支持 Shell 和终端启动"
+  ],
+  "packages": {
+    "macos-arm64": {
+      "url": "https://example.invalid/releases/APIOneBatchTool-0.3.0-macos-arm64.zip",
+      "sha256": ""
+    },
+    "macos-x64": {
+      "url": "https://example.invalid/releases/APIOneBatchTool-0.3.0-macos-x64.zip",
+      "sha256": ""
+    },
+    "windows-x64": {
+      "url": "https://example.invalid/releases/APIOneBatchTool-0.3.0-windows-x64.zip",
+      "sha256": ""
+    }
+  }
+}

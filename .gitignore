@@ -1,0 +1,21 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Local user data and runtime output
+data/*.json
+logs/*
+results/*
+update/*
+runtime/
+
+# Local secrets and environment files
+.env
+*.env
+secrets.json
+
+# Keep the directory structure in a fresh checkout.
+!data/.gitkeep
+!logs/.gitkeep
+!results/.gitkeep
+!update/.gitkeep

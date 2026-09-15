@@ -1,0 +1,14 @@
+{
+  "app_name": "APIOne Batch Tool",
+  "version": "0.3.0",
+  "channel": "stable",
+  "build_type": "portable-python",
+  "release_date": "2026-09-14",
+  "notes": [
+    "多任务批量调度与日志",
+    "便携式 Python 目录运行",
+    "保留官方 APIOne SDK JAR",
+    "支持 Shell 和终端启动",
+    "支持 manifest 版本检查与安全更新"
+  ]
+}
