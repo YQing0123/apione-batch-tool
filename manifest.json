@@ -1,6 +1,6 @@
 {
   "app_name": "APIOne Batch Tool",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "min_supported_version": "0.1.0",
   "release_notes": [
     "任务面板与配置导航布局优化",
@@ -12,8 +12,8 @@
   ],
   "packages": {
     "macos-arm64": {
-      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneBatchTool-0.4.2-macos-arm64.zip",
-      "sha256": "ca5c5434a7eeb400e80bb725b6579da2a99befc4ed8bba350a33246c5cfb8b0f"
+      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.3/APIOneBatchTool-0.4.3-macos-arm64.zip",
+      "sha256": "e922fa4a90ba29cc8bd1e3a6e2e17cad11accd28a1075830ed08193ef425b597"
     },
     "macos-x64": {
       "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneBatchTool-0.4.2-macos-x64.zip",
@@ -26,8 +26,8 @@
   },
   "environment_packages": {
     "macos-arm64": {
-      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneEnvironment-0.4.2-macos-arm64.zip",
-      "sha256": "b8acfddc1ce96f2d2f6abe8d99cfb30bc1d47640e998d31321843b313385a5c9"
+      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.3/APIOneEnvironment-0.4.3-macos-arm64.zip",
+      "sha256": "15e158df464d8224f922a6b695601d2c3ed63bdf644bcb0f53b09eb0af1da288"
     }
   }
 }
