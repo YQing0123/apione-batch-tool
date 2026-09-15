@@ -602,7 +602,8 @@ class ApioneBatchApp:
                 try:
                     install_environment_package(REMOTE_MANIFEST_URL, ROOT, report.platform_key, show_progress)
                 except Exception as exc:  # noqa: BLE001
-                    self.root.after(0, lambda: messagebox.showerror("环境包安装失败", str(exc), parent=top))
+                    error_message = str(exc)
+                    self.root.after(0, lambda message=error_message: messagebox.showerror("环境包安装失败", message, parent=top))
                 else:
                     self.root.after(0, lambda: progress_text.set("环境包安装完成，请重新检查"))
                 finally:
