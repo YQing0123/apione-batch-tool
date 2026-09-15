@@ -19,5 +19,11 @@
       "url": "https://example.invalid/releases/APIOneBatchTool-0.3.0-windows-x64.zip",
       "sha256": ""
     }
+  },
+  "environment_packages": {
+    "macos-arm64": {
+      "url": "https://example.invalid/releases/APIOneEnvironment-0.3.0-macos-arm64.zip",
+      "sha256": ""
+    }
   }
 }

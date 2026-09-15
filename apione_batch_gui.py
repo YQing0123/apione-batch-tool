@@ -15,12 +15,14 @@ from updater import UpdateError, check_for_update, download_and_install, load_cu
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
+from typing import Optional
 
 from apione_tool.models import ApiConfig, ParameterConfig, ScheduleConfig, TaskConfig
 from apione_tool.scheduler import TaskScheduler
 from apione_tool.sdk_runner import SdkRunner
 from apione_tool.storage import TaskStorage
 
+from environment_manager import EnvironmentReport, check_environment, install_environment_package
 import java_env
 from java_env import InstallGuide, JavaInfo
 
@@ -163,6 +165,7 @@ class ApioneBatchApp:
         actions = ttk.Frame(header, style="App.TFrame")
         actions.place(relx=1.0, rely=0.0, anchor="ne")
         ttk.Button(actions, text="新建任务", command=self._new_task, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(actions, text="环境检查", command=self._show_environment_check, style="Secondary.TButton").pack(side="left", padx=(0, 8))
         ttk.Button(actions, text="检查更新", command=self._check_update, style="Secondary.TButton").pack(side="left")
 
         paned = ttk.PanedWindow(outer, orient="horizontal")
@@ -524,6 +527,108 @@ class ApioneBatchApp:
             return
         messagebox.showinfo("更新完成", f"已更新到 {result.installed_version}。请重新启动工具。\n备份位置：{result.backup_path}")
         self.status.set("更新完成，请重新启动工具")
+
+    def _show_environment_check(self) -> None:
+        """显示环境检查结果，并允许安装缺失的便携 Python runtime。"""
+        top = tk.Toplevel(self.root)
+        top.title("环境检查")
+        top.geometry("720x540")
+        top.minsize(640, 460)
+        top.transient(self.root)
+        top.grab_set()
+
+        frame = ttk.Frame(top, padding=16)
+        frame.pack(fill="both", expand=True)
+        ttk.Label(frame, text="运行环境检查", font=("Avenir Next", 15, "bold")).pack(anchor="w")
+        summary = tk.StringVar()
+        ttk.Label(frame, textvariable=summary, style="Muted.TLabel", wraplength=660).pack(anchor="w", pady=(4, 12))
+        rows = ttk.Frame(frame)
+        rows.pack(fill="both", expand=True)
+        progress = ttk.Progressbar(frame, mode="determinate", maximum=1, value=0)
+        progress.pack(fill="x", pady=(12, 3))
+        progress_text = tk.StringVar(value="")
+        ttk.Label(frame, textvariable=progress_text, style="Muted.TLabel").pack(anchor="w")
+
+        report: EnvironmentReport = check_environment(ROOT, self.java_path.get().strip() or "java")
+        runtime_button = ttk.Button(frame, text="下载环境包并安装")
+        java_button = ttk.Button(frame, text="安装 Java 17+")
+        refresh_button = ttk.Button(frame, text="重新检查")
+
+        def render(current: EnvironmentReport) -> None:
+            nonlocal report
+            report = current
+            for child in rows.winfo_children():
+                child.destroy()
+            for row, item in enumerate(current.items):
+                state_text = "支持" if item.ok else "不支持"
+                if item.ok and item.repairable:
+                    state_text = "可运行"
+                state_color = "#18794e" if item.ok and not item.repairable else ("#a15c00" if item.ok else "#b42318")
+                ttk.Label(rows, text=item.name, width=18, anchor="w", font=("Avenir Next", 10, "bold")).grid(row=row, column=0, sticky="nw", pady=7)
+                ttk.Label(rows, text=state_text, foreground=state_color, width=8, anchor="w").grid(row=row, column=1, sticky="nw", pady=7)
+                ttk.Label(rows, text=item.detail, style="Muted.TLabel", wraplength=470, justify="left").grid(row=row, column=2, sticky="nw", pady=7)
+            rows.columnconfigure(2, weight=1)
+            summary.set("全部环境满足运行要求" if current.supported else "存在不满足项，请安装或修复后重新检查")
+            runtime_button.configure(state="normal" if current.can_install_runtime else "disabled")
+            java_button.configure(state="normal" if current.java_guide else "disabled")
+
+        def refresh() -> None:
+            render(check_environment(ROOT, self.java_path.get().strip() or "java"))
+            progress.configure(value=0)
+            progress_text.set("")
+
+        def show_progress(phase: str, completed: int, total: Optional[int], text: str) -> None:
+            def update() -> None:
+                if not top.winfo_exists():
+                    return
+                if total:
+                    progress.stop()
+                    progress.configure(mode="determinate", maximum=total, value=completed)
+                else:
+                    progress.configure(mode="indeterminate")
+                    progress.start(12)
+                progress_text.set(text)
+            self.root.after(0, update)
+
+        def download_runtime() -> None:
+            runtime_button.configure(state="disabled")
+            refresh_button.configure(state="disabled")
+            progress.stop()
+            progress.configure(mode="indeterminate")
+            progress.start(12)
+            progress_text.set("正在准备下载环境包…")
+
+            def worker() -> None:
+                try:
+                    install_environment_package(REMOTE_MANIFEST_URL, ROOT, report.platform_key, show_progress)
+                except Exception as exc:  # noqa: BLE001
+                    self.root.after(0, lambda: messagebox.showerror("环境包安装失败", str(exc), parent=top))
+                else:
+                    self.root.after(0, lambda: progress_text.set("环境包安装完成，请重新检查"))
+                finally:
+                    def finish() -> None:
+                        progress.stop()
+                        refresh_button.configure(state="normal")
+                        runtime_button.configure(state="normal")
+                    self.root.after(0, finish)
+
+            threading.Thread(target=worker, name="environment-installer", daemon=True).start()
+
+        def install_java() -> None:
+            if report.java_guide:
+                java_env.run_install_command(report.java_guide, java_env.get_platform())
+                progress_text.set("已启动 Java 安装向导，完成后点击“重新检查”")
+
+        runtime_button.configure(command=download_runtime)
+        java_button.configure(command=install_java)
+        refresh_button.configure(command=refresh)
+        render(report)
+        button_row = ttk.Frame(frame)
+        button_row.pack(fill="x", pady=(14, 0))
+        runtime_button.pack(in_=button_row, side="left", padx=(0, 8))
+        java_button.pack(in_=button_row, side="left", padx=(0, 8))
+        refresh_button.pack(in_=button_row, side="left")
+        ttk.Button(button_row, text="关闭", command=top.destroy).pack(side="right")
 
     def _new_task(self) -> None:
         task_id = f"task-{datetime.now():%Y%m%d-%H%M%S}-{uuid.uuid4().hex[:6]}"
