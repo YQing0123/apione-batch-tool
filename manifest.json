@@ -12,7 +12,7 @@
   "packages": {
     "macos-arm64": {
       "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneBatchTool-0.4.1-macos-arm64.zip",
-      "sha256": "5130b50efcc113ec2161a624cba6ff5f710c2b619726c179d6127ef1052e1acd"
+      "sha256": "ca5c5434a7eeb400e80bb725b6579da2a99befc4ed8bba350a33246c5cfb8b0f"
     },
     "macos-x64": {
       "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneBatchTool-0.4.1-macos-x64.zip",
@@ -26,7 +26,7 @@
   "environment_packages": {
     "macos-arm64": {
       "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneEnvironment-0.4.1-macos-arm64.zip",
-      "sha256": "9c46228f98d56daaaa73fea09a1fe4c237cf3c282cf8af313670dbbe6b193f2a"
+      "sha256": "b8acfddc1ce96f2d2f6abe8d99cfb30bc1d47640e998d31321843b313385a5c9"
     }
   }
 }
