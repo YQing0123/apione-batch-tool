@@ -112,11 +112,12 @@ class ApioneBatchApp:
             pass
         style.configure("App.TFrame", background="#edf3f1")
         style.configure("Status.TFrame", background="#dbe9e5")
+        style.configure("TLabel", background="#edf3f1", foreground="#23464d")
         style.configure("Title.TLabel", background="#edf3f1", foreground="#17343d", font=("Avenir Next", 20, "bold"))
         style.configure("Subtitle.TLabel", background="#edf3f1", foreground="#557078", font=("Avenir Next", 10))
-        style.configure("Section.TLabel", foreground="#17343d", font=("Avenir Next", 13, "bold"))
-        style.configure("TaskState.TLabel", foreground="#17343d", font=("Avenir Next", 11, "bold"))
-        style.configure("Muted.TLabel", foreground="#5d7378", font=("Avenir Next", 9))
+        style.configure("Section.TLabel", background="#edf3f1", foreground="#17343d", font=("Avenir Next", 13, "bold"))
+        style.configure("TaskState.TLabel", background="#edf3f1", foreground="#17343d", font=("Avenir Next", 11, "bold"))
+        style.configure("Muted.TLabel", background="#edf3f1", foreground="#5d7378", font=("Avenir Next", 9))
         style.configure("Status.TLabel", background="#dbe9e5", foreground="#23464d", font=("Avenir Next", 9, "bold"))
         style.configure("Card.TLabelframe", background="#ffffff", bordercolor="#c8d8d4", relief="solid", borderwidth=1)
         style.configure("Card.TLabelframe.Label", background="#ffffff", foreground="#17343d", font=("Avenir Next", 10, "bold"))
@@ -887,10 +888,11 @@ class ApioneBatchApp:
         if self.scheduler.is_running(task.task_id):
             return "运行中"
         message = self.task_statuses.get(task.task_id, "")
+        # 完成摘要包含“失败 0 次”，必须先判断最终状态，不能被失败关键词误判。
+        if "任务已完成" in message:
+            return "已完成" if "失败 0 次" in message else "失败"
         if "失败" in message:
             return "失败"
-        if "任务已完成" in message:
-            return "已完成"
         if "任务已停止" in message:
             return "已停止"
         return "就绪"
