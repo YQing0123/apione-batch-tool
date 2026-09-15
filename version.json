@@ -1,6 +1,6 @@
 {
   "app_name": "APIOne Batch Tool",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "channel": "stable",
   "build_type": "portable-python",
   "release_date": "2026-09-15",
@@ -12,6 +12,7 @@
     "支持 manifest 版本检查与安全更新",
     "新增环境检查和便携 Python runtime 自动安装",
     "修复成功任务在列表中误显示为失败",
-    "修复停止和异常任务状态显示"
+    "修复停止和异常任务状态显示",
+    "优化请求参数 JSON 配置错误提示"
   ]
 }

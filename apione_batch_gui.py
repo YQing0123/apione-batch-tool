@@ -34,6 +34,101 @@ DEFAULT_JAR = "apione-http-client-1.0.3-RELEASE.jar"
 REMOTE_MANIFEST_URL = "https://raw.githubusercontent.com/YQing0123/apione-batch-tool/main/manifest.json"
 
 
+def _friendly_parameter_json_error(exc: json.JSONDecodeError, line_number: int) -> str:
+    """Turn Python's JSON parser messages into actionable editor guidance."""
+    messages = {
+        "Expecting property name enclosed in double quotes":
+            "属性名必须使用英文半角双引号，例如 {\"name\":\"id\"}；请检查是否误用了中文引号、单引号或多余逗号",
+        "Expecting value":
+            "这里缺少有效值；请检查是否有中文引号、空数组元素、缺失的值或多余逗号",
+        "Expecting ',' delimiter":
+            "字段或数组元素之间缺少英文逗号 ,",
+        "Extra data":
+            "一行只能填写一个完整的 JSON 对象，请删除对象后多余的内容",
+        "Unterminated string starting at":
+            "字符串没有使用英文半角双引号正确闭合",
+        "Invalid \\escape":
+            '字符串中的反斜杠转义格式无效，请使用合法 JSON 转义（例如 \\\\ 或 \\"）。',
+    }
+    reason = messages.get(exc.msg, f"JSON 语法错误：{exc.msg}")
+    return f"第 {line_number} 行、第 {exc.colno} 列：{reason}。"
+
+
+def _parameter_structure_error(item: object, line_number: int) -> str | None:
+    """Validate the JSON object's shape before constructing ParameterConfig."""
+    if not isinstance(item, dict):
+        return f"第 {line_number} 行：必须填写 JSON 对象，不能是数组、数字或字符串。"
+    if "name" not in item:
+        return f"第 {line_number} 行：缺少必填字段 name，例如 {{\"name\":\"plate_no\", ...}}。"
+    if not isinstance(item["name"], str):
+        return f"第 {line_number} 行：字段 name 必须是字符串，例如 \"plate_no\"。"
+    allowed = {"name", "value_type", "mode", "value", "values", "min_value", "max_value"}
+    unknown = sorted(set(item) - allowed)
+    if unknown:
+        return f"第 {line_number} 行：包含不支持的字段 {', '.join(unknown)}。"
+    value_type = item.get("value_type", "string")
+    if not isinstance(value_type, str) or value_type not in {"string", "integer", "number", "boolean", "null"}:
+        return f"第 {line_number} 行：value_type 必须是 string、integer、number、boolean 或 null。"
+    mode = item.get("mode", "fixed")
+    if not isinstance(mode, str) or mode not in {"fixed", "choice", "random_range"}:
+        return f"第 {line_number} 行：mode 必须是 fixed、choice 或 random_range。"
+    if mode == "choice" and not isinstance(item.get("values", []), list):
+        return f"第 {line_number} 行：choice 模式的 values 必须是数组，例如 [1, 2, 3]。"
+    if mode == "random_range" and value_type not in {"integer", "number"}:
+        return f"第 {line_number} 行：random_range 只支持 integer 或 number 类型。"
+    return None
+
+
+def _parse_parameter_lines(lines: list[str]) -> list[ParameterConfig]:
+    """Parse and validate editor lines with user-facing error messages."""
+    parameters: list[ParameterConfig] = []
+    for line_number, line in enumerate(lines, start=1):
+        if not line.strip():
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(_friendly_parameter_json_error(exc, line_number)) from exc
+        structure_error = _parameter_structure_error(item, line_number)
+        if structure_error:
+            raise ValueError(structure_error)
+        try:
+            parameter = ParameterConfig(**item)
+            parameter.generate()
+        except (ValueError, TypeError, AttributeError) as exc:
+            name = item.get("name", "")
+            value_type = item.get("value_type", "string")
+            mode = item.get("mode", "fixed")
+            if mode == "choice" and not item.get("values"):
+                reason = "choice 模式的 values 不能为空，请至少填写一个候选值"
+            elif mode == "random_range" and (item.get("min_value") is None or item.get("max_value") is None):
+                reason = "random_range 模式必须同时填写 min_value 和 max_value"
+            elif mode == "random_range":
+                try:
+                    reversed_range = item.get("min_value") > item.get("max_value")
+                except TypeError:
+                    reversed_range = False
+                reason = (
+                    "random_range 模式的 min_value 不能大于 max_value"
+                    if reversed_range else str(exc)
+                )
+            elif value_type == "integer":
+                reason = "integer 类型的值必须是整数，例如 1；请检查 value 或 values 中是否写入了非整数"
+            elif value_type == "number":
+                reason = "number 类型的值必须是数字，例如 1.5；请检查 value、values 或随机范围"
+            else:
+                reason = str(exc)
+            raise ValueError(f"第 {line_number} 行参数 {name} 配置错误：{reason}。") from exc
+        parameters.append(parameter)
+    if not parameters:
+        raise ValueError("至少配置一个请求参数，请每行填写一个 JSON 对象。")
+    names = [parameter.name.strip() for parameter in parameters]
+    if len(names) != len(set(names)):
+        duplicate = next(name for name in names if names.count(name) > 1)
+        raise ValueError(f"请求参数名重复：{duplicate}。每个参数的 name 必须唯一。")
+    return parameters
+
+
 def _portable_jar_path(value: str) -> str:
     """Persist SDK JAR locations relative to the portable application directory."""
     text = (value or "").strip().replace("\\", "/")
@@ -418,19 +513,11 @@ class ApioneBatchApp:
             messagebox.showerror("保存失败", str(exc))
 
     def _parse_parameters_from_editor(self) -> list[ParameterConfig]:
+        lines = self.param_text.get("1.0", "end").splitlines()
         try:
-            data = [json.loads(line) for line in self.param_text.get("1.0", "end").splitlines() if line.strip()]
-            parameters = [ParameterConfig(**item) for item in data]
-        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            return _parse_parameter_lines(lines)
+        except ValueError as exc:
             raise ValueError(f"请求参数配置有误：{exc}") from exc
-        if not parameters:
-            raise ValueError("至少配置一个请求参数")
-        names = [parameter.name.strip() for parameter in parameters]
-        if len(names) != len(set(names)):
-            raise ValueError("请求参数名不能重复")
-        for parameter in parameters:
-            parameter.generate()
-        return parameters
 
     def _save_param_tab(self) -> None:
         try:

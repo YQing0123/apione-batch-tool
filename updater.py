@@ -266,8 +266,13 @@ def check_for_update(
         raise UpdateError(f"{selected_platform} 新版本软件包缺少有效的 SHA-256")
     package_url = _resolve_package_url(package.get("url"), resolved_manifest_location)
 
-    notes_value = manifest.get("release_notes", ())
-    if isinstance(notes_value, str):
+    # release_notes 是可选字段：缺省或显式 null 都按“无发行说明”处理。
+    # 注意缺省值不能写成 ()：空元组既不匹配 str 也不匹配 list，会掉进 else 分支，
+    # 导致任何省略 release_notes 的清单都被判为非法，报错信息还会误导成“类型不对”。
+    notes_value = manifest.get("release_notes")
+    if notes_value is None:
+        notes = ()
+    elif isinstance(notes_value, str):
         notes = (notes_value,)
     elif isinstance(notes_value, list) and all(isinstance(item, str) for item in notes_value):
         notes = tuple(notes_value)

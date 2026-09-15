@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 
+# Build output
+build/
+dist/
+
 # Local user data and runtime output
 data/*.json
 logs/*

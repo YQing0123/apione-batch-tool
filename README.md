@@ -103,7 +103,7 @@ Content-Type：application/json
 version.json
 ```
 
-当前目录版本为 `0.4.1`。当前可直接在本机 macOS ARM 上测试；Intel Mac 和 Windows 发行目录仍需填充对应架构的 Python 运行时。GUI 顶部提供“环境检查”和“检查更新”按钮；更新模块支持本地或 HTTPS manifest、平台包下载、SHA-256 校验、保留用户数据目录和失败回滚。当前远程更新清单为：
+当前目录版本为 `0.4.3`。当前可直接在本机 macOS ARM 上测试；Intel Mac 和 Windows 发行目录仍需填充对应架构的 Python 运行时。GUI 顶部提供“环境检查”和“检查更新”按钮；更新模块支持本地或 HTTPS manifest、平台包下载、SHA-256 校验、保留用户数据目录和失败回滚。当前远程更新清单为：
 
 ```text
 https://raw.githubusercontent.com/YQing0123/apione-batch-tool/main/manifest.json
