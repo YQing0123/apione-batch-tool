@@ -1,31 +1,32 @@
 {
   "app_name": "APIOne Batch Tool",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "min_supported_version": "0.1.0",
   "release_notes": [
     "任务面板与配置导航布局优化",
     "失败响应识别、重试和动态日志增强",
     "SDK JAR 使用程序目录相对路径",
     "新增环境检查和便携 Python runtime 自动安装",
-    "修复成功任务在列表中误显示为失败"
+    "修复成功任务在列表中误显示为失败",
+    "修复停止和异常任务状态显示"
   ],
   "packages": {
     "macos-arm64": {
-      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneBatchTool-0.4.1-macos-arm64.zip",
+      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneBatchTool-0.4.2-macos-arm64.zip",
       "sha256": "ca5c5434a7eeb400e80bb725b6579da2a99befc4ed8bba350a33246c5cfb8b0f"
     },
     "macos-x64": {
-      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneBatchTool-0.4.1-macos-x64.zip",
+      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneBatchTool-0.4.2-macos-x64.zip",
       "sha256": ""
     },
     "windows-x64": {
-      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneBatchTool-0.4.1-windows-x64.zip",
+      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneBatchTool-0.4.2-windows-x64.zip",
       "sha256": ""
     }
   },
   "environment_packages": {
     "macos-arm64": {
-      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.1/APIOneEnvironment-0.4.1-macos-arm64.zip",
+      "url": "https://github.com/YQing0123/apione-batch-tool/releases/download/v0.4.2/APIOneEnvironment-0.4.2-macos-arm64.zip",
       "sha256": "b8acfddc1ce96f2d2f6abe8d99cfb30bc1d47640e998d31321843b313385a5c9"
     }
   }
