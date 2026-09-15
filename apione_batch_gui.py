@@ -888,13 +888,14 @@ class ApioneBatchApp:
         if self.scheduler.is_running(task.task_id):
             return "运行中"
         message = self.task_statuses.get(task.task_id, "")
-        # 完成摘要包含“失败 0 次”，必须先判断最终状态，不能被失败关键词误判。
-        if "任务已完成" in message:
-            return "已完成" if "失败 0 次" in message else "失败"
-        if "失败" in message:
+        # 完成/停止摘要都包含“失败 N 次”，必须先判定终态再判断失败，
+        # 否则“失败 0 次”会被“失败”关键词误判成失败。
+        for prefix, done_label in (("任务已完成", "已完成"), ("任务已停止", "已停止")):
+            if prefix in message:
+                return done_label if "失败 0 次" in message else "失败"
+        # “任务异常”是调度线程捕获到的致命错误，同样属于失败，不能回落成“就绪”。
+        if "失败" in message or "任务异常" in message:
             return "失败"
-        if "任务已停止" in message:
-            return "已停止"
         return "就绪"
 
     def _on_scheduler_event(self, task_id: str, message: str) -> None:
